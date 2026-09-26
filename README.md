@@ -49,6 +49,14 @@ MilkSU 把 Coding、CTF、CVE 和实验室放进同一个桌面。界面是 Reac
 
 和 CTF / CVE / Coding 同级。可以给本地或远程地址开一次探测，也可以从题目包起本机 Docker 靶（Juice Shop / WebGoat / S2-045 / whoami）或安卓 MilkSU-Lab。Agent 把过程写进 `report.md`。
 
+### 画图
+
+侧栏「画图」单独成页。用一句话描述要画的内容，选定图像模型后生成；结果留在画图会话里，改描述可以再画一版。画图会话和 Coding 会话分开。
+
+### 看板娘
+
+桌面上的陪伴小窗。跟着产品状态换动作，空闲、对话、做决定各有姿态。在「设置 → 看板娘」里换皮肤：导入自己的帧，或选插件提供的皮肤。
+
 <table>
   <tr>
     <td width="50%">
@@ -68,6 +76,16 @@ MilkSU 把 Coding、CTF、CVE 和实验室放进同一个桌面。界面是 Reac
     <td width="50%">
       <img src="docs/media/readme-settings.png" alt="MilkSU 设置中的 MCP 与本机安全工具">
       <p align="center"><sub>设置里的 MCP 与本机安全工具</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/media/readme-draw.jpg" alt="MilkSU 画图">
+      <p align="center"><sub>画图：描述要画的内容</sub></p>
+    </td>
+    <td width="50%">
+      <img src="docs/media/readme-companion.png" alt="MilkSU 看板娘">
+      <p align="center"><sub>桌面看板娘</sub></p>
     </td>
   </tr>
 </table>
