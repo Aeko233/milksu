@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.1"><img src="https://img.shields.io/badge/latest_release-26.927.1-f3f0e8?style=flat-square&labelColor=20211f" alt="Latest GitHub Release 26.927.1"></a>
+  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2"><img src="https://img.shields.io/badge/latest_release-26.927.2-f3f0e8?style=flat-square&labelColor=20211f" alt="Latest GitHub Release 26.927.2"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square&labelColor=20211f" alt="AGPL-3.0-only"></a>
   <img src="https://img.shields.io/badge/platform-macOS_Windows_Linux-f3f0e8?style=flat-square&labelColor=20211f" alt="macOS, Windows and Linux">
   <img src="https://img.shields.io/badge/desktop-Electron_%2B_React_%2B_Go-f3f0e8?style=flat-square&labelColor=20211f" alt="Electron, React and Go">
 </p>
 
 <p align="center">
-  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.1">下载 26.927.1</a>
+  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2">下载 26.927.2</a>
   ·
   <a href="https://github.com/MilkSU-Official/milksu/releases">全部发行</a>
   ·
@@ -103,7 +103,7 @@ MilkSU 把 Coding、CTF、CVE 和实验室放进同一个桌面。界面是 Reac
 
 ## 安装
 
-当前安装包是 **[26.927.1](https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.1)**：macOS ARM64 DMG（Developer ID 签名并公证，安装引导图为 Retina @2x）、Windows x64 EXE、Linux x64 `.deb` 与 `.tar.gz`。这一版深色模式重排了明暗层级：侧栏变浅、页面变深，对话卡片、输入栏和用户气泡在深底上更跳，设置页和对话页同一底色。设置页按用途重组出运行时和记忆分类；侧栏会话组可以折叠，首页会话分成项目、任务两组；新会话不再自动带上最近项目。工作过程合并成一条可展开的折叠概览，长对话翻阅走视口感知滑动窗口。选中对话文字加入输入框时，引用出现在光标处，可以单独删除。Windows 安装器尚未代码签名，可能被 SmartScreen 拦住。已登录后侧栏「更新」打开进度框下载，下完后点安装并重启。
+当前安装包是 **[26.927.2](https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2)**：macOS ARM64 DMG（Developer ID 签名并公证，安装引导图为 Retina @2x）、Windows x64 EXE、Linux x64 `.deb` 与 `.tar.gz`。这一版修长对话在撞到模型输入上限之前就会自动整理上下文，不再带着超限请求撞 400；用量面板标出「可用输入上限」分界线和越线提示，看得出预算用到哪儿。Computer Use 的 Cua Driver 升到 0.29.1。沿用 26.927.1 的深色模式明暗层级：侧栏变浅、页面变深，对话卡片、输入栏和用户气泡在深底上更跳，设置页和对话页同一底色；设置页按用途重组出运行时和记忆分类；侧栏会话组可以折叠，首页会话分成项目、任务两组；新会话不再自动带上最近项目。工作过程合并成一条可展开的折叠概览，长对话翻阅走视口感知滑动窗口。选中对话文字加入输入框时，引用出现在光标处，可以单独删除。Windows 安装器尚未代码签名，可能被 SmartScreen 拦住。已登录后侧栏「更新」打开进度框下载，下完后点安装并重启。
 
 | 系统 | 安装包 | Computer Use | Browser Use |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ Linux 只发两份包：Ubuntu / Debian 用 `.deb`，Omarchy / Arch / NixOS 用�
 
 ```bash
 # Ubuntu / Debian
-sudo apt install ./MilkSU-Linux-x64-26.927.1.deb
+sudo apt install ./MilkSU-Linux-x64-26.927.2.deb
 
 # Omarchy / Arch：用仓库 `packaging/linux/PKGBUILD.in`，填版本与 sha256 后
 makepkg -si

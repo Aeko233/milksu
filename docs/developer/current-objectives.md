@@ -22,6 +22,22 @@
 
 产品回归：`npm run test:product-loop`。见 [产品回归循环](product-regression-loop.md)。
 
+## 26.927.2 发行回执（tag v26.927.2 → `6680ec9c`，2026-09-27）
+
+本版能力记录：压缩阈值改为按「窗口 − 最大输出 − 一步余量」计算，修长对话在撞模型输入上限
+（HTTP 400）之前自动整理上下文（#173）；`context_composition` 事件与落库记录带上
+`maxOutput` / `usableWindow`，用量面板标出「可用输入上限」分界线与越线提示；Computer Use
+的 Cua Driver 升到 0.29.1（#184）。
+tag 与分发 source 同为 `6680ec9c`；tag 之后只有 README 文档提交（开源组件清单、鸣谢），
+无未打进安装包的产品代码。
+
+| 平台 | workflow | 文件名 | 大小（字节） | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| macOS | build-macos | MilkSU-macOS-arm64-26.927.2.dmg | 509,037,625 | 753e3a739102143a28db943945e8a4c94b5ac1d888db16fc7d328e30c6c9535c |
+| Windows | build-windows | MilkSU-Windows-x64-26.927.2-Setup.exe | 392,623,388 | b7eae613b21c39e5cb6037e7ff88509374e7a52a0d09ff5347e77d636c166209 |
+| Linux | build-linux | MilkSU-Linux-x64-26.927.2.deb | 376,300,744 | 5bf590d945c6aa09f4d8effb1d73967831028cee0a184b61d38265851d9c09c9 |
+| Linux | build-linux | MilkSU-Linux-x64-26.927.2.tar.gz | 456,421,263 | c79954ecf3287276b8c2f69ef47aec749af02ba96f1ba8a3fc68427084d4122c |
+
 ## 26.927.1 发行回执（tag v26.927.1 → `92d6a97b`，2026-09-27）
 
 本版能力记录：深色模式明度阶调整（侧栏与页面背景对调，对话内卡片、胶囊再提亮一档）；
@@ -38,8 +54,8 @@ tag 与分发 source `a654c4d5` 之间只差测试与文档提交，无未打进
 
 ## 未打进最近安装包
 
-工作树里已有、最近一次正式包装（版本见 README）没有的，以代码为准。tag `92d6a97b`
-之后只有 README 与新截图文档提交，没有未打进安装包的产品代码。发下一版前仍缺的验收：
+工作树里已有、最近一次正式包装（版本见 README）没有的，以代码为准。tag `6680ec9c`
+之后只有 README 文档提交，没有未打进安装包的产品代码。发下一版前仍缺的验收：
 
 - Windows Computer Use 整段崩溃尚未真机验收。Windows / Linux 窗口铬尚未真机验收。
 - 新会话不再默认继承最近项目（#169 改向），这条新行为还没有真机验收。
