@@ -263,12 +263,12 @@ function ThemeModeCards({
 function ThemeModePreview({ mode, className }: { mode: 'light' | 'dark'; className?: string }) {
   const dark = mode === 'dark'
   return (
-    <div className={`flex ${className ?? ''}`} style={{ background: dark ? '#141414' : '#f4f6f8' }}>
-      <div className="h-full w-1/4" style={{ background: dark ? '#101010' : '#e9edf1' }} />
+    <div className={`flex ${className ?? ''}`} style={{ background: dark ? '#101012' : '#f4f6f8' }}>
+      <div className="h-full w-1/4" style={{ background: dark ? '#202023' : '#e9edf1' }} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-2">
         <div className="h-2 w-3/4 rounded-sm" style={{ background: dark ? '#2a2a2a' : '#ffffff' }} />
-        <div className="h-2 w-full rounded-sm" style={{ background: dark ? '#242424' : '#eef1f4' }} />
-        <div className="h-2 w-5/6 rounded-sm" style={{ background: dark ? '#242424' : '#eef1f4' }} />
+        <div className="h-2 w-full rounded-sm" style={{ background: dark ? '#26262a' : '#eef1f4' }} />
+        <div className="h-2 w-5/6 rounded-sm" style={{ background: dark ? '#26262a' : '#eef1f4' }} />
       </div>
     </div>
   )
