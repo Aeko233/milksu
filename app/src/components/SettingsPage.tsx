@@ -553,27 +553,26 @@ export default function SettingsPage({
 
   return (
     <main className="settings-page flex min-w-0 flex-1 flex-col bg-background">
-      <header className="app-drag settings-page-header shell-window-control-safe-x relative flex h-16 shrink-0 items-center justify-center border-b border-border bg-background px-5 text-foreground">
-        {managementView ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="app-no-drag absolute left-3 h-8 gap-1 px-2"
-            onClick={() => setManagementView(null)}
-          >
-            <ChevronLeft className="size-4" />
-            {t('返回', 'Back')}
-          </Button>
-        ) : null}
-        <p className="text-lg font-semibold tracking-[-0.02em]">
-          {managementView ? managementTitles[managementView] : settingsCategoryLabel(category)}
-        </p>
-      </header>
-
       <div className="settings-layout flex min-h-0 flex-1">
         <div className="page-scroll min-w-0 flex-1">
           <div className="page-column page-stack" data-plugin-surface="workspace-list">
+            <div className="app-drag settings-page-title shell-window-control-safe-x relative flex items-center justify-center py-2 text-foreground">
+              {managementView ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="app-no-drag absolute left-0 top-1/2 h-8 -translate-y-1/2 gap-1 px-2"
+                  onClick={() => setManagementView(null)}
+                >
+                  <ChevronLeft className="size-4" />
+                  {t('返回', 'Back')}
+                </Button>
+              ) : null}
+              <h1 className="text-lg font-semibold tracking-[-0.02em]">
+                {managementView ? managementTitles[managementView] : settingsCategoryLabel(category)}
+              </h1>
+            </div>
             {notice ? (
               <Alert
                 variant={notice.tone === 'error' ? 'destructive' : 'default'}
@@ -3922,7 +3921,7 @@ function createSettingsStore(
 }
 
 const settingsPageCss = `
-.settings-page-header {
+.settings-page-title {
   --shell-window-control-gutter: 1.25rem;
 }
 .settings-page .settings-notice {
