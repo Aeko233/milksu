@@ -206,15 +206,19 @@ export async function runSettingsMemory(driver) {
 export async function runSettingsBrowser(driver) {
   const error = await openOrFail(driver, ['权限与操控', 'Permissions'])
   if (error) return error
-  // 外部浏览器行的「管理」打开 Browser Use 管理页。
+  // 外部浏览器行的「管理」打开 Browser Use 管理页。同行可能还有别的「管理」
+  // 按钮（电脑应用、内置浏览器），取文本最短的那一层，避免点到祖先容器
+  // 里排在前面的别的管理按钮。
   const clicked = await driver.cdp.callFunction(`function() {
     const rows = Array.from(document.querySelectorAll('div'))
-    const row = rows.find(item => {
+    const matches = rows.filter(item => {
       const text = (item.textContent || '')
       if (!text.includes('外部浏览器') && !text.includes('External browser')) return false
       return Array.from(item.querySelectorAll('button')).some(button => ['管理', 'Manage'].includes((button.textContent || '').trim()))
     })
-    if (!row) return false
+    if (!matches.length) return false
+    const row = matches.reduce((smallest, item) =>
+      ((item.textContent || '').length < (smallest.textContent || '').length ? item : smallest))
     const manage = Array.from(row.querySelectorAll('button')).find(button => ['管理', 'Manage'].includes((button.textContent || '').trim()))
     if (!manage) return false
     manage.click()
