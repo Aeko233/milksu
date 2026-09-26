@@ -178,26 +178,75 @@ npm run desktop:start
 | [东云](https://github.com/2409324124) | 账户模型可用性与可调用目录（PR #3） |
 | [荒景肆（ArakeiShi）](https://github.com/ArakeiShi) | Windows 无 Git 启动与 Computer Use 驱动（PR #5）；产物目录和数据目录打开（PR #6）；实验性 v1 本地插件框架（PR #34） |
 | [薄荷布丁（SkyAerope）](https://github.com/SkyAerope) | 自定义中转站保存与 MilkSU 账户行、设置里的数据库兼容行（PR #7） |
-| [AsabaLazy（Aeko233）](https://github.com/Aeko233)、[Luo](https://github.com/luo) | CTF 收藏/全部视图改走本地目录（PR #8）；Windows 源码换行测试（PR #9）；应用级本地调试模式（PR #10） |
+| [AsabaLazy（Aeko233）](https://github.com/Aeko233)、[Luo](https://github.com/luo) | CTF 收藏/全部视图改走本地目录（PR #8）；Windows 源码换行测试（PR #9）；应用级本地调试模式（PR #10）。Aeko233：产品回归脚本保护宿主 MilkSU 进程、启动路径断言适配多平台（PR #171、#172）；Computer Use 的 Cua Driver 升到 0.29.1（PR #184） |
 | [shiluoshiro](https://github.com/shiluoshiro) | 设置页切换分类时清掉上一分类提示（PR #25） |
-| [メタトロン（MetatronPrototype）](https://github.com/MetatronPrototype) | bash 调用注入默认超时上界，非活跃工作区的 Sidecar 停靠保活（PR #80）；凭据变更改为惰性替换 Sidecar，停止与运行态跟住引擎真相（PR #83）；会话草稿隔离、计划收起、资料页失败重试与钉选排序（PR #97）；回收停止事件限定到当时会话、流式文本按批合并（PR #98）；破坏性删除先测量再判定再记录（PR #105）；HEIC 照片按文件头量尺寸发送（PR #137）、中文根路径的 socket 字节上限（PR #138）；模型失败必须让读者看见、思考复读时提醒（PR #155）；审批条判定抽成可测纯模块（PR #156） |
+| [メタトロン（MetatronPrototype）](https://github.com/MetatronPrototype) | bash 调用注入默认超时上界，非活跃工作区的 Sidecar 停靠保活（PR #80）；凭据变更改为惰性替换 Sidecar，停止与运行态跟住引擎真相（PR #83）；会话草稿隔离、计划收起、资料页失败重试与钉选排序（PR #97）；回收停止事件限定到当时会话、流式文本按批合并（PR #98）；破坏性删除先测量再判定再记录（PR #105）；HEIC 照片按文件头量尺寸发送（PR #137）、中文根路径的 socket 字节上限（PR #138）；模型失败必须让读者看见、思考复读时提醒（PR #155）；审批条判定抽成可测纯模块（PR #156）；压缩阈值按窗口与最大输出算，面板标出可用输入上限（PR #173） |
 
 问题和产品建议可以提到 [GitHub Issues](https://github.com/MilkSU-Official/milksu/issues)，或发到 [milksu@proton.me](mailto:milksu@proton.me)。
 
 ## 开源组件
 
-MilkSU 的 Agent 循环、记忆分层、视觉和界面行为分别建立在这些项目上。第三方保留各自原许可，完整文本见 [NOTICE](NOTICE) 和 `third_party/licenses/`。
+MilkSU 建立在这些项目之上。第三方保留各自原许可，完整文本见 [NOTICE](NOTICE) 和 `third_party/licenses/`。
+
+### Agent 内核与记忆
 
 | 项目 | 在 MilkSU 中做什么 | 许可 |
 | --- | --- | --- |
-| [Pi](https://github.com/earendil-works/pi) | 通用 Agent 会话、上下文压缩和工具循环。当前固定 `@earendil-works/pi-coding-agent` 0.87.0。后台子代理来自 `pi-subagents` 0.70.1 | MIT |
-| [Obelisk](https://github.com/tommy0103/obelisk) | 本地会话记忆与学习记录的分层参考。MilkSU 以 AGPL-3.0-only 发布，以便嵌入该组件 | AGPL-3.0 |
-| [ak-ui](https://github.com/YunYouJun/ak-ui) | 少量界面彩蛋（列表筛选、连接状态、顶栏模块字标）。不把 `@yunyoujun/ak-ui` 写进 app 依赖 | MIT |
-| [Beautiful UI](https://www.beautifului.dev/) | 已发安装包仍有其材料残留。新 UI / 重构以仓库根目录 `AGENTS.md` 为准（React + shadcn）。不引入其 React 运行时或付费图标 | MIT |
-| [Felinic](https://github.com/memohai/ui) | `v26.915.1` 及更早的 Vue 安装包用过 `@felinic/ui`。工作树已卸 `packages/ui` submodule，不再加 Felinic | 上游未附 SPDX |
-| [shadcn/ui](https://ui.shadcn.com/) | 当前安装包的组件与 token 来源 | MIT |
+| [Pi](https://github.com/earendil-works/pi)（`@earendil-works/pi-coding-agent` 0.87.0，含 pi-ai、pi-tui） | 默认 Agent 内核：通用会话、上下文压缩和工具循环 | MIT |
+| Pi 扩展（pi-goal、pi-lsp、pi-mcp-adapter、pi-sub-agent、pi-better-background-tasks） | 目标、LSP、MCP 适配与后台子代理 | MIT |
+| [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`@deepseek-ai/dsh` 0.1.6-alpha.1，走 ACP） | 可选 Agent 运行时，新对话可在 Pi 与 DSH 之间选 | MIT |
+| [Obelisk](https://github.com/tommy0103/obelisk) | 本地会话记忆与学习记录的分层。companion sidecar 以上游 writer lease 写 `companion/obelisk.sqlite` 索引，Go 不直接写这个库 | AGPL-3.0 |
 
-桌面壳还使用 Electron、xterm.js、Playwright MCP、Archify、Cua 等，详见 NOTICE。当前安装包是 React + shadcn。
+### 桌面壳与界面
+
+| 项目 | 在 MilkSU 中做什么 | 许可 |
+| --- | --- | --- |
+| Electron | 跨平台桌面壳，托管受管 Go 运行时与 Agent Sidecar | MIT |
+| React 19 | 产品 UI 框架 | MIT |
+| shadcn/ui + Radix UI | 组件基座（New York、zinc 主题） | MIT |
+| Tailwind CSS v4 | 样式系统 | MIT |
+| xterm.js（`@xterm/xterm` 6.0.0） | 底部终端面板 | MIT |
+| lucide-react | 全套界面图标 | ISC |
+| markdown-it、highlight.js、DOMPurify | 对话正文的 Markdown 渲染、代码高亮与 HTML 消毒 | MIT、MPL-2.0 OR Apache-2.0 |
+| @tanstack/react-virtual | 长列表虚拟化（会话与消息） | MIT |
+| Archify | `milksu_archify` 界面布局工具 | MIT |
+| Vite、TypeScript、Vitest、oxlint、lefthook | 前端构建、类型、测试与提交门禁 | 各自许可，TypeScript 为 Apache-2.0 |
+| VitePress | 文档站 | MIT |
+
+### Go 运行时与桌面集成
+
+| 项目 | 在 MilkSU 中做什么 | 许可 |
+| --- | --- | --- |
+| modelcontextprotocol/go-sdk v1.7.0 | 内置与用户 MCP 的服务端 / 客户端 | MIT |
+| modernc.org/sqlite | 纯 Go SQLite，看板娘记忆索引等本地库 | MIT |
+| creack/pty v1.1.24 | 终端伪终端 | MIT |
+| gorilla/websocket v1.5.3 | 桌面 RPC 与事件推送的长连接 | BSD-2-Clause |
+| godbus/dbus v5 | Linux 桌面集成（Portal、通知等） | BSD-2-Clause |
+| gopher-lua v1.1.2 | 插件的 Lua 运行时 | MIT |
+| google/uuid、gopkg.in/yaml.v3 | 通用工具库 | BSD、MIT |
+
+### Computer Use 与浏览器
+
+| 项目 | 在 MilkSU 中做什么 | 许可 |
+| --- | --- | --- |
+| Cua Driver 0.29.1 | macOS / Windows 后台 GUI 操作（AX 树 + 截图，不抢鼠标） | MIT |
+| Playwright MCP | 会话隔离的内置浏览器自动化 | Apache-2.0 |
+
+### 实验室靶机
+
+题目包按 digest 固定下载或拉取镜像，不进仓库，也不链接进 MilkSU 二进制。
+
+| 项目 | 用途 | 许可 |
+| --- | --- | --- |
+| InjuredAndroid 1.0.12 | 安卓题目包，校验 SHA-256 后下载 APK | Apache-2.0 |
+| OWASP Juice Shop | Web 靶机 | MIT |
+| OWASP WebGoat | Web 靶机，隔离运行 | GPL-2.0 |
+| Vulhub Struts2 S2-045 | CVE 复现靶机 | 上游许可 |
+| traefik/whoami | Linux 连通性靶机 | MIT |
+
+### 字体与历史界面来源
+
+Inter Variable、Noto Sans SC Variable、Geist 等可变字体经 @fontsource 分发，按 SIL Open Font License 1.1 使用，不因 MilkSU 的 AGPL 授权而改变。更早的界面还残留 ak-ui 与 Beautiful UI 的材料，许可文本在 `third_party/licenses/`；`v26.915.1` 及更早的 Vue 安装包用过 Felinic（`@felinic/ui`），上游未附 SPDX 许可文件。
 
 ## 许可证
 
