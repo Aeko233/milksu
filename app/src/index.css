@@ -63,7 +63,7 @@
   --text-display: calc(var(--ui-font-size) * 24 / 13);
   --text-display--line-height: calc(var(--ui-font-size) * 29.6 / 13);
 
-  --background: rgb(24 24 24 / 0.90);
+  --background: rgb(20 20 20 / 0.90);
   --background-chrome: rgb(20 20 20 / 0.82);
   --foreground: #f0f0f0;
   --card: rgb(24 24 24 / 0.90);
@@ -95,7 +95,7 @@
   --ring: #d0d0d0;
   --hover: #2a2a2a;
   --hover-2: #333333;
-  --sidebar: rgb(20 20 20 / 0.78);
+  --sidebar: rgb(24 24 24 / 0.78);
   --sidebar-foreground: #f0f0f0;
   --sidebar-border: #2b2b2b;
   --sidebar-accent: #2a2a2a;
