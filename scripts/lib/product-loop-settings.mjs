@@ -21,7 +21,6 @@ const CATEGORIES = [
   ['权限与操控', 'Permissions'],
   ['模型', 'Models'],
   ['运行时', 'Runtime'],
-  ['浏览器', 'Browser'],
   ['归档聊天', 'Archived chats'],
   ['记忆', 'Memory'],
   ['CTF'],
@@ -49,7 +48,7 @@ export async function runSettingsNav(driver) {
   }
   return missing.length
     ? fail(`设置侧栏缺了 ${missing.join('、')}`)
-    : pass('十七个设置分类都能点开')
+    : pass('十六个设置分类都能点开')
 }
 
 export async function runSettingsAccount(driver) {
@@ -100,8 +99,8 @@ export async function runSettingsPermissions(driver) {
   if (error) return error
   return expectLabels(
     driver,
-    ['权限', 'Permissions', '辅助功能', 'Accessibility', '屏幕录制', 'Screen Recording'],
-    '权限与操控页有权限分组',
+    ['权限', 'Permissions', '辅助功能', 'Accessibility', '屏幕录制', 'Screen Recording', '自动操控', 'Automation', '电脑应用', 'Computer use', '外部浏览器', 'External browser'],
+    '权限与操控页有权限与自动操控分组',
     '权限与操控页缺了控件',
   )
 }
@@ -179,22 +178,55 @@ export async function runSettingsChats(driver) {
 export async function runSettingsMemory(driver) {
   const error = await openOrFail(driver, ['记忆', 'Memory'])
   if (error) return error
-  return expectLabels(
+  const missing = await expectLabels(
     driver,
     ['长期记忆', 'Long-term memory', '记忆检索', 'Memory retrieval', '会话索引', 'Session index', 'CTF 记忆', 'CTF memory'],
     '记忆页有长期记忆、会话索引和 CTF 记忆',
     '记忆页缺了控件',
   )
+  if (missing) return missing
+  // 有记忆条目时主页出现「管理」，点进去是检索与逐条忘掉的二级页。
+  const opened = await driver.cdp.callFunction(`function() {
+    const button = Array.from(document.querySelectorAll('button'))
+      .find(item => ['管理', 'Manage'].includes((item.textContent || '').trim()))
+    if (!button) return 'absent'
+    button.click()
+    return 'clicked'
+  }`)
+  if (opened !== 'clicked') return null
+  await delay(300)
+  return expectLabels(
+    driver,
+    ['已记住的事情', 'Remembered', '检索', 'Search'],
+    '记忆条目二级页有检索',
+    '记忆条目二级页缺了控件',
+  )
 }
 
 export async function runSettingsBrowser(driver) {
-  const error = await openOrFail(driver, ['浏览器', 'Browser'])
+  const error = await openOrFail(driver, ['权限与操控', 'Permissions'])
   if (error) return error
+  // 外部浏览器行的「管理」打开 Browser Use 管理页。
+  const clicked = await driver.cdp.callFunction(`function() {
+    const rows = Array.from(document.querySelectorAll('div'))
+    const row = rows.find(item => {
+      const text = (item.textContent || '')
+      if (!text.includes('外部浏览器') && !text.includes('External browser')) return false
+      return Array.from(item.querySelectorAll('button')).some(button => ['管理', 'Manage'].includes((button.textContent || '').trim()))
+    })
+    if (!row) return false
+    const manage = Array.from(row.querySelectorAll('button')).find(button => ['管理', 'Manage'].includes((button.textContent || '').trim()))
+    if (!manage) return false
+    manage.click()
+    return true
+  }`)
+  if (!clicked) return fail('权限与操控页找不到外部浏览器的管理按钮')
+  await delay(300)
   return expectLabels(
     driver,
     ['Browser Use', '真实浏览器', 'Your browser'],
-    '浏览器页有 Browser Use',
-    '浏览器页缺了控件',
+    '外部浏览器管理页有 Browser Use',
+    '外部浏览器管理页缺了控件',
   )
 }
 
