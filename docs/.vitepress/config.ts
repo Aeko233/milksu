@@ -47,12 +47,27 @@ export default defineConfig({
             { text: '看板娘皮肤', link: '/developer/companion-skin' },
           ],
         },
+        {
+          text: '调研快照',
+          items: [
+            { text: 'LLM 与 Agent 安全（2026-09）', link: '/surveys/2026-09-27-llm-agent-security' },
+          ],
+        },
       ],
       '/architecture/': [
         {
           text: '当前',
           items: [
             { text: '当前系统与分层', link: '/architecture/current-system' },
+          ],
+        },
+      ],
+      '/surveys/': [
+        {
+          text: '调研快照',
+          items: [
+            { text: '开发者文档', link: '/developer/' },
+            { text: 'LLM 与 Agent 安全（2026-09）', link: '/surveys/2026-09-27-llm-agent-security' },
           ],
         },
       ],
