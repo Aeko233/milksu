@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2"><img src="https://img.shields.io/badge/latest_release-26.927.2-f3f0e8?style=flat-square&labelColor=20211f" alt="Latest GitHub Release 26.927.2"></a>
+  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.3"><img src="https://img.shields.io/badge/latest_release-26.927.3-f3f0e8?style=flat-square&labelColor=20211f" alt="Latest GitHub Release 26.927.3"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square&labelColor=20211f" alt="AGPL-3.0-only"></a>
   <img src="https://img.shields.io/badge/platform-macOS_Windows_Linux-f3f0e8?style=flat-square&labelColor=20211f" alt="macOS, Windows and Linux">
   <img src="https://img.shields.io/badge/desktop-Electron_%2B_React_%2B_Go-f3f0e8?style=flat-square&labelColor=20211f" alt="Electron, React and Go">
 </p>
 
 <p align="center">
-  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2">下载 26.927.2</a>
+  <a href="https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.3">下载 26.927.3</a>
   ·
   <a href="https://github.com/MilkSU-Official/milksu/releases">全部发行</a>
   ·
@@ -103,7 +103,7 @@ MilkSU 把 Coding、CTF、CVE 和实验室放进同一个桌面。界面是 Reac
 
 ## 安装
 
-当前安装包是 **[26.927.2](https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.2)**：macOS ARM64 DMG（Developer ID 签名并公证，安装引导图为 Retina @2x）、Windows x64 EXE、Linux x64 `.deb` 与 `.tar.gz`。这一版修长对话在撞到模型输入上限之前就会自动整理上下文，不再带着超限请求撞 400；用量面板标出「可用输入上限」分界线和越线提示，看得出预算用到哪儿。Computer Use 的 Cua Driver 升到 0.29.1。沿用 26.927.1 的深色模式明暗层级：侧栏变浅、页面变深，对话卡片、输入栏和用户气泡在深底上更跳，设置页和对话页同一底色；设置页按用途重组出运行时和记忆分类；侧栏会话组可以折叠，首页会话分成项目、任务两组；新会话不再自动带上最近项目。工作过程合并成一条可展开的折叠概览，长对话翻阅走视口感知滑动窗口。选中对话文字加入输入框时，引用出现在光标处，可以单独删除。Windows 安装器尚未代码签名，可能被 SmartScreen 拦住。已登录后侧栏「更新」打开进度框下载，下完后点安装并重启。
+当前安装包是 **[26.927.3](https://github.com/MilkSU-Official/milksu/releases/tag/v26.927.3)**：macOS ARM64 DMG（Developer ID 签名并公证，安装引导图为 Retina @2x）、Windows x64 EXE、Linux x64 `.deb` 与 `.tar.gz`。这一版把全部状态目录统一到 `~/.milksu`，首次启动自动迁移旧数据；修复 macOS 更新下载失败；Sidecar 按目标平台裁剪外来平台二进制；修掉 DSH 桥队列回合失败、看板娘进行中的会话标题点不到与记忆页没有检索、CVE 复盘「记下」开关、coding 引用与附件标记六个回归。Windows 安装器尚未代码签名，可能被 SmartScreen 拦住。已登录后侧栏「更新」打开进度框下载，下完后点安装并重启。
 
 | 系统 | 安装包 | Computer Use | Browser Use |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ Linux 只发两份包：Ubuntu / Debian 用 `.deb`，Omarchy / Arch / NixOS 用�
 
 ```bash
 # Ubuntu / Debian
-sudo apt install ./MilkSU-Linux-x64-26.927.2.deb
+sudo apt install ./MilkSU-Linux-x64-26.927.3.deb
 
 # Omarchy / Arch：用仓库 `packaging/linux/PKGBUILD.in`，填版本与 sha256 后
 makepkg -si
@@ -127,7 +127,7 @@ MILKSU_LINUX_UNPACKED=/path/to/unpacked nix --impure build ./packaging/linux
 
 打开后用 GitHub 或用户名密码登录。管理员为账户开通模型，或在「设置 → 模型」按厂商目录、自定义接口添加自己的 Provider。没有模型额度时仍可登录和看本地内容，只是还不能发起模型任务。
 
-用户可见产物在各系统文档目录下的 `MilkSU/`。凭据留在本机，不进聊天、普通日志或项目文件。
+用户可见产物在各系统文档目录下的 `MilkSU/`；运行状态（配置、会话、工作区、缓存）统一在 `~/.milksu/`。凭据留在本机，不进聊天、普通日志或项目文件。
 
 ## 适用范围与免责
 

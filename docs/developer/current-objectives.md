@@ -22,6 +22,23 @@
 
 产品回归：`npm run test:product-loop`。见 [产品回归循环](product-regression-loop.md)。
 
+## 26.927.3 发行回执（tag v26.927.3 → `9e2825f3`，2026-09-27）
+
+本版能力记录：全部运行时状态统一到 `~/.milksu`（data / config / workspaces / desktop /
+backups），默认根首次启动自动迁移旧平台数据目录，旧目录改名加 `.pre-milksu-home` 保留（#188）；
+`MILKSU_APPDATA_DIR` 语义变为整个状态根的别名；Electron stable 的 userData 迁入 `<root>/desktop`；
+修复 macOS 更新下载失败（ensureOwnerWritable 改用 original-fs）；Sidecar 按目标平台裁剪外来平台
+二进制（#185）；修复 #178–#183 六个 product-loop 回归（#186）。本轮按用户指示不跑 product-loop，
+`release:verify` 与三端云端门禁全部通过。
+tag 与分发 source 同为 `9e2825f3`。
+
+| 平台 | workflow | 文件名 | 大小（字节） | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| macOS | build-macos | MilkSU-macOS-arm64-26.927.3.dmg | 392,863,105 | e3c8560da804962913ccdb0178c8cf6ed98ec35ffff82be9538e2bdb9a1b594a |
+| Windows | build-windows | MilkSU-Windows-x64-26.927.3-Setup.exe | 310,049,583 | ba9574e15c77b9e7a7b2309d7955e4f76f36f80efa07ea8cd2293b108f48231c |
+| Linux | build-linux | MilkSU-Linux-x64-26.927.3.deb | 282,066,116 | bd99d9b48b88b5fef26c945c7a93de0e1741be433ece5fdd7da6d80f216bed21 |
+| Linux | build-linux | MilkSU-Linux-x64-26.927.3.tar.gz | 345,524,160 | c6d5104a33a39a0685f80a366852b7d22d791635a65e8835e484f65610096fdc |
+
 ## 26.927.2 发行回执（tag v26.927.2 → `6680ec9c`，2026-09-27）
 
 本版能力记录：压缩阈值改为按「窗口 − 最大输出 − 一步余量」计算，修长对话在撞模型输入上限
@@ -54,8 +71,8 @@ tag 与分发 source `a654c4d5` 之间只差测试与文档提交，无未打进
 
 ## 未打进最近安装包
 
-工作树里已有、最近一次正式包装（版本见 README）没有的，以代码为准。tag `6680ec9c`
-之后只有 README 文档提交，没有未打进安装包的产品代码。发下一版前仍缺的验收：
+工作树里已有、最近一次正式包装（版本见 README）没有的，以代码为准。tag `9e2825f3`
+之后只有 README 与本文档提交，没有未打进安装包的产品代码。发下一版前仍缺的验收：
 
 - Windows Computer Use 整段崩溃尚未真机验收。Windows / Linux 窗口铬尚未真机验收。
 - 新会话不再默认继承最近项目（#169 改向），这条新行为还没有真机验收。
