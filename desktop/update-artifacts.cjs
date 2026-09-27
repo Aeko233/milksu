@@ -3,7 +3,7 @@
 const { execFile } = require('node:child_process')
 const { createHash, randomBytes } = require('node:crypto')
 const { createReadStream, createWriteStream } = require('node:fs')
-const { chmod, lstat, mkdir, readdir, rename, rm, stat } = require('node:fs/promises')
+const { mkdir, readdir, rename, rm, stat } = require('node:fs/promises')
 const { createServer } = require('node:http')
 const { basename, dirname, join } = require('node:path')
 const { Readable, Transform } = require('node:stream')
@@ -19,18 +19,29 @@ async function runCommand(file, args, options = {}) {
 }
 
 async function ensureOwnerWritable(root) {
+  // Electron 把 app.asar 伪装成虚拟目录；遍历解包产物时必须用 original-fs，
+  // 否则 readdir 会走进 asar 内部，chmod 虚拟路径抛 ENOTDIR。
+  let fsPromises = require('node:fs/promises')
+  if (process.versions.electron) {
+    try {
+      fsPromises = require('original-fs').promises
+    } catch {
+      fsPromises = require('node:fs/promises')
+    }
+  }
+  const { lstat: lstatPath, readdir: readdirPath, chmod: chmodPath } = fsPromises
   const stack = [root]
   while (stack.length > 0) {
     const current = stack.pop()
-    const info = await lstat(current)
+    const info = await lstatPath(current)
     if (info.isSymbolicLink()) continue
     if (info.isDirectory()) {
-      await chmod(current, 0o755)
-      for (const name of await readdir(current)) stack.push(join(current, name))
+      await chmodPath(current, 0o755)
+      for (const name of await readdirPath(current)) stack.push(join(current, name))
       continue
     }
     if (info.isFile()) {
-      await chmod(current, (info.mode & 0o111) !== 0 ? 0o755 : 0o644)
+      await chmodPath(current, (info.mode & 0o111) !== 0 ? 0o755 : 0o644)
     }
   }
 }
