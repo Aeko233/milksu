@@ -911,6 +911,11 @@ async function handleHostRequest(method, payload = {}) {
       mainWindow.show()
       mainWindow.focus()
       return null
+    case 'window.toggleMaximize':
+      if (!mainWindow || mainWindow.isDestroyed()) return null
+      if (mainWindow.isMaximized()) mainWindow.unmaximize()
+      else mainWindow.maximize()
+      return mainWindow.isMaximized()
     case 'browser.start': return browserShell.start(payload)
     case 'browser.setViewport': return browserShell.setViewport(payload)
     case 'browser.navigate': return browserShell.navigate(payload)

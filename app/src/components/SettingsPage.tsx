@@ -118,6 +118,7 @@ import ExternalEditorIcon from '@/components/ExternalEditorIcon'
 import { buildDiagnosticText, isDebugMode, setDebugMode } from '@/lib/debugMode'
 import { explainModelVerificationFailure } from '@/lib/tokenFluxError'
 import { applyUiLocale, normalizeUiLocale, t } from '@/lib/uiLocale'
+import { toggleWindowMaximize } from '@/lib/hostPlatform'
 import {
   CATALOG_MODEL_PROVIDERS,
   MODEL_PROVIDER_API_LABELS,
@@ -556,7 +557,10 @@ export default function SettingsPage({
       <div className="settings-layout flex min-h-0 flex-1">
         <div className="page-scroll min-w-0 flex-1">
           <div className="page-column page-stack" data-plugin-surface="workspace-list">
-            <div className="app-drag settings-page-title shell-window-control-safe-x flex items-center gap-1 py-2 text-foreground">
+            <div
+              className="app-drag settings-page-title shell-window-control-safe-x flex items-center gap-1 py-2 text-foreground"
+              onDoubleClick={() => toggleWindowMaximize()}
+            >
               {managementView ? (
                 <Button
                   type="button"
