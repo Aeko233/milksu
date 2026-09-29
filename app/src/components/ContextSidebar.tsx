@@ -87,6 +87,10 @@ import {
   readSidebarSectionOpen,
   writeSidebarSectionOpen,
 } from '@/lib/sidebarSectionState'
+import {
+  readStoredProjectFoldLimit,
+  subscribeProjectFoldLimitSync,
+} from '@/lib/projectFoldLimit'
 import { useT, useUiLocale } from '@/hooks/useUiLocale'
 import { updateControlVisible } from '@/lib/updateRestart'
 import { updateStatusMessage } from '@/lib/updateStatus'
@@ -306,6 +310,20 @@ export default function ContextSidebar({
   const [expandedWidth, setExpandedWidth] = useState(() => readSidebarWidth())
   const [resizing, setResizing] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  // 项目文件夹的展开态只在本次挂载内有效：刷新或重进后回到收起，跟 Kimi Work 一致。
+  const [expandedProjectGroups, setExpandedProjectGroups] = useState<ReadonlySet<string>>(() => new Set())
+  // 折叠阈值来自设置 → 外观「项目默认显示会话数」，改动经 BroadcastChannel 实时生效。
+  const [projectFoldLimit, setProjectFoldLimit] = useState(() => readStoredProjectFoldLimit())
+  useEffect(() => subscribeProjectFoldLimitSync(setProjectFoldLimit), [])
+
+  function toggleProjectGroupExpanded(key: string) {
+    setExpandedProjectGroups(current => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const updateVisible = updateControlVisible(updateStatus?.state)
   const updateDownloading = updateStatus?.state === 'downloading'
@@ -780,6 +798,12 @@ export default function ContextSidebar({
   }
 
   function projectGroupFolder(group: CodingConversationGroup) {
+    // 钉选组是用户亲手挑出来的，不参与折叠；只有普通项目文件夹超限时才收。
+    const foldable = group.key !== PINNED_GROUP_KEY && group.conversations.length > projectFoldLimit
+    const expanded = expandedProjectGroups.has(group.key)
+    const visibleConversations = foldable && !expanded
+      ? group.conversations.slice(0, projectFoldLimit)
+      : group.conversations
     return (
       <details key={group.key} open className="coding-project-group">
         <summary
@@ -811,7 +835,26 @@ export default function ContextSidebar({
           ) : null}
         </summary>
         <div className="mt-0.5 space-y-0.5">
-          {group.conversations.map(conversation => conversationRow(conversation, group.key))}
+          {visibleConversations.map(conversation => conversationRow(conversation, group.key))}
+          {foldable ? (
+            <div className="agent-sidebar-item mx-2 flex h-9 items-center overflow-hidden rounded-[8px]">
+              <button
+                type="button"
+                className="agent-sidebar-row coding-project-child relative h-9 min-w-0 flex-1 justify-start rounded-none px-2 text-left"
+                aria-expanded={expanded}
+                data-testid={`project-group-fold-${group.key}`}
+                onClick={event => {
+                  event.stopPropagation()
+                  toggleProjectGroupExpanded(group.key)
+                }}
+              >
+                <span className="flex size-5 shrink-0" aria-hidden="true" />
+                <span className="agent-sidebar__copy ml-1.5 min-w-0 flex-1 truncate text-label font-normal text-muted-foreground">
+                  {expanded ? t('收起显示', 'Show less') : t('展开', 'Show more')}
+                </span>
+              </button>
+            </div>
+          ) : null}
         </div>
       </details>
     )
