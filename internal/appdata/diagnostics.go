@@ -111,11 +111,12 @@ type DiagnosticSettings struct {
 }
 
 type DiagnosticInput struct {
-	AppVersion string             `json:"appVersion"`
-	Runtime    DiagnosticRuntime  `json:"runtime"`
-	Settings   DiagnosticSettings `json:"settings"`
-	Lifespan   LifespanStart      `json:"lifespan"`
-	Events     []DiagnosticEvent  `json:"events,omitempty"`
+	AppVersion     string             `json:"appVersion"`
+	Runtime        DiagnosticRuntime  `json:"runtime"`
+	Settings       DiagnosticSettings `json:"settings"`
+	Lifespan       LifespanStart      `json:"lifespan"`
+	Events         []DiagnosticEvent  `json:"events,omitempty"`
+	RendererEvents []DiagnosticEvent  `json:"-"`
 }
 
 type DiagnosticDatabase struct {
@@ -155,11 +156,43 @@ type DiagnosticExport struct {
 	Cancelled   bool   `json:"cancelled,omitempty"`
 }
 
+type diagnosticIO struct {
+	mkdirAll   func(string, os.FileMode) error
+	createTemp func(string, string) (*os.File, error)
+	chmod      func(string, os.FileMode) error
+	sync       func(*os.File) error
+	close      func(*os.File) error
+	rename     func(string, string) error
+	stat       func(string) (os.FileInfo, error)
+}
+
+func systemDiagnosticIO() diagnosticIO {
+	return diagnosticIO{
+		mkdirAll:   os.MkdirAll,
+		createTemp: os.CreateTemp,
+		chmod:      os.Chmod,
+		sync:       (*os.File).Sync,
+		close:      (*os.File).Close,
+		rename:     os.Rename,
+		stat:       os.Stat,
+	}
+}
+
 func ExportDiagnostics(
 	ctx context.Context,
 	root,
 	destination string,
 	input DiagnosticInput,
+) (DiagnosticExport, error) {
+	return exportDiagnostics(ctx, root, destination, input, systemDiagnosticIO())
+}
+
+func exportDiagnostics(
+	ctx context.Context,
+	root,
+	destination string,
+	input DiagnosticInput,
+	ioOps diagnosticIO,
 ) (DiagnosticExport, error) {
 	root, err := secureRoot(root)
 	if err != nil {
@@ -169,7 +202,7 @@ func ExportDiagnostics(
 	if err != nil {
 		return DiagnosticExport{}, err
 	}
-	if err := os.MkdirAll(filepath.Dir(destination), 0o700); err != nil {
+	if err := ioOps.mkdirAll(filepath.Dir(destination), 0o700); err != nil {
 		return DiagnosticExport{}, fmt.Errorf("create diagnostic destination: %w", err)
 	}
 
@@ -188,7 +221,7 @@ func ExportDiagnostics(
 		Settings:     sanitizeDiagnosticSettings(input.Settings),
 		Lifespan:     sanitizeDiagnosticLifespan(input.Lifespan),
 		Databases:    inspectDiagnosticDatabases(ctx, root),
-		RecentEvents: sanitizeDiagnosticEvents(input.Events),
+		RecentEvents: sanitizeDiagnosticEvents(mergeDiagnosticEvents(input.Events, sanitizeRendererDiagnosticEvents(input.RendererEvents))),
 		Privacy: []string{
 			"不包含 API Key、Arena Token、浏览器配对令牌或 PI 认证文件",
 			"不包含会话正文、附件内容、模型回复或工具输入输出",
@@ -201,14 +234,14 @@ func ExportDiagnostics(
 	}
 	payload = append(payload, '\n')
 
-	temporary, err := os.CreateTemp(filepath.Dir(destination), ".milksu-diagnostics-*.zip")
+	temporary, err := ioOps.createTemp(filepath.Dir(destination), ".milksu-diagnostics-*.zip")
 	if err != nil {
 		return DiagnosticExport{}, fmt.Errorf("create diagnostic archive: %w", err)
 	}
 	temporaryPath := temporary.Name()
 	defer os.Remove(temporaryPath)
-	if err := temporary.Chmod(0o600); err != nil {
-		temporary.Close()
+	if err := ioOps.chmod(temporary.Name(), 0o600); err != nil {
+		_ = ioOps.close(temporary)
 		return DiagnosticExport{}, fmt.Errorf("protect diagnostic archive: %w", err)
 	}
 
@@ -221,33 +254,33 @@ func ExportDiagnostics(
 	header.SetMode(0o600)
 	writer, err := archive.CreateHeader(header)
 	if err != nil {
-		archive.Close()
-		temporary.Close()
+		_ = archive.Close()
+		_ = ioOps.close(temporary)
 		return DiagnosticExport{}, fmt.Errorf("create diagnostic report: %w", err)
 	}
 	if _, err := writer.Write(payload); err != nil {
-		archive.Close()
-		temporary.Close()
+		_ = archive.Close()
+		_ = ioOps.close(temporary)
 		return DiagnosticExport{}, fmt.Errorf("write diagnostic report: %w", err)
 	}
 	if err := archive.Close(); err != nil {
-		temporary.Close()
+		_ = ioOps.close(temporary)
 		return DiagnosticExport{}, fmt.Errorf("finish diagnostic archive: %w", err)
 	}
-	if err := temporary.Sync(); err != nil {
-		temporary.Close()
+	if err := ioOps.sync(temporary); err != nil {
+		_ = ioOps.close(temporary)
 		return DiagnosticExport{}, fmt.Errorf("sync diagnostic archive: %w", err)
 	}
-	if err := temporary.Close(); err != nil {
+	if err := ioOps.close(temporary); err != nil {
 		return DiagnosticExport{}, fmt.Errorf("close diagnostic archive: %w", err)
 	}
-	if err := os.Rename(temporaryPath, destination); err != nil {
+	if err := ioOps.rename(temporaryPath, destination); err != nil {
 		return DiagnosticExport{}, fmt.Errorf("install diagnostic archive: %w", err)
 	}
-	if err := os.Chmod(destination, 0o600); err != nil {
+	if err := ioOps.chmod(destination, 0o600); err != nil {
 		return DiagnosticExport{}, fmt.Errorf("protect diagnostic archive: %w", err)
 	}
-	info, err := os.Stat(destination)
+	info, err := ioOps.stat(destination)
 	if err != nil {
 		return DiagnosticExport{}, fmt.Errorf("inspect diagnostic archive: %w", err)
 	}
@@ -345,6 +378,127 @@ func sanitizeDiagnosticSettings(settings DiagnosticSettings) DiagnosticSettings 
 	slices.Sort(providers)
 	settings.ConfiguredProvider = slices.Compact(providers)
 	return settings
+}
+
+// 这份 renderer 事件白名单与 app/src/lib/rendererDiagnostics.ts 里的
+// allowedActions / allowedKeys 是两份手写拷贝，改动时必须两边同步。
+var rendererDiagnosticActions = map[string]struct{}{
+	"section-change":            {},
+	"catalog-load":              {},
+	"catalog-search":            {},
+	"full-catalog-load":         {},
+	"training-progress-refresh": {},
+	"catalog-sync":              {},
+	"dashboard-load":            {},
+	"rpc":                       {},
+}
+
+var (
+	rendererMethodPattern = regexp.MustCompile(`^[a-zA-Z0-9_]{1,80}$`)
+	rendererNumberPattern = regexp.MustCompile(`^[0-9]{1,10}$`)
+)
+
+var rendererDiagnosticKeys = map[string]struct{}{
+	"method":     {},
+	"section":    {},
+	"view":       {},
+	"status":     {},
+	"count":      {},
+	"page":       {},
+	"durationMs": {},
+	"errorKind":  {},
+}
+
+func sanitizeRendererDiagnosticEvents(events []DiagnosticEvent) []DiagnosticEvent {
+	if len(events) > 200 {
+		events = events[len(events)-200:]
+	}
+	result := make([]DiagnosticEvent, 0, len(events))
+	for _, event := range events {
+		timestamp, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(event.Timestamp))
+		if err != nil {
+			continue
+		}
+		parts := strings.Fields(event.Message)
+		if len(parts) == 0 {
+			continue
+		}
+		if _, ok := rendererDiagnosticActions[parts[0]]; !ok {
+			continue
+		}
+		level := "info"
+		for _, part := range parts[1:] {
+			key, value, ok := strings.Cut(part, "=")
+			if !ok || value == "" {
+				parts = nil
+				break
+			}
+			if _, ok := rendererDiagnosticKeys[key]; !ok || !validRendererDiagnosticValue(key, value) {
+				parts = nil
+				break
+			}
+			if key == "status" && value == "error" {
+				level = "error"
+			}
+		}
+		if len(parts) == 0 {
+			continue
+		}
+		category := "renderer"
+		if parts[0] == "rpc" {
+			category = "desktop-rpc"
+		} else if parts[0] != "section-change" {
+			category = "nssctf"
+		}
+		result = append(result, DiagnosticEvent{
+			Timestamp: timestamp.UTC().Format(time.RFC3339Nano),
+			Category:  category,
+			Level:     level,
+			Message:   strings.Join(parts, " "),
+		})
+	}
+	return result
+}
+
+func validRendererDiagnosticValue(key, value string) bool {
+	switch key {
+	case "method":
+		return rendererMethodPattern.MatchString(value)
+	case "section":
+		return value == "home" || value == "coding" || value == "ctf" || value == "vuln" || value == "lab" || value == "settings"
+	case "view":
+		return value == "all" || value == "collection"
+	case "status":
+		return value == "ok" || value == "error" || value == "cache-hit" || value == "local-hit" || value == "pending"
+	case "errorKind":
+		return value == "timeout" || value == "permission" || value == "network" || value == "invalid" || value == "unavailable" || value == "unknown"
+	case "count", "page", "durationMs":
+		return rendererNumberPattern.MatchString(value)
+	default:
+		return false
+	}
+}
+
+// mergeDiagnosticEvents 按时间戳归并后端与 renderer 事件，再由 sanitizeDiagnosticEvents
+// 截断到上限，保证截断后保留的是两路合计最新的事件，避免 renderer 事件挤占后端配额。
+// 稳定排序让同刻事件保持后端在前、renderer 在后；时间戳无法解析的事件视为最旧，
+// 截断时最先被丢弃。
+func mergeDiagnosticEvents(backend, renderer []DiagnosticEvent) []DiagnosticEvent {
+	merged := make([]DiagnosticEvent, 0, len(backend)+len(renderer))
+	merged = append(merged, backend...)
+	merged = append(merged, renderer...)
+	slices.SortStableFunc(merged, func(a, b DiagnosticEvent) int {
+		return diagnosticEventTimestamp(a.Timestamp).Compare(diagnosticEventTimestamp(b.Timestamp))
+	})
+	return merged
+}
+
+func diagnosticEventTimestamp(value string) time.Time {
+	parsed, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(value))
+	if err != nil {
+		return time.Time{}
+	}
+	return parsed
 }
 
 func sanitizeDiagnosticEvents(events []DiagnosticEvent) []DiagnosticEvent {
