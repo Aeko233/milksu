@@ -7,6 +7,9 @@ installBrokenPipeGuards()
 const { execFileSync, spawn } = require('node:child_process')
 const os = require('node:os')
 const { randomUUID } = require('node:crypto')
+const { pathToFileURL } = require('node:url')
+const { promisify } = require('node:util')
+const execFileAsync = promisify(require('node:child_process').execFile)
 const { promises: fs } = require('node:fs')
 const path = require('node:path')
 const {
@@ -193,6 +196,7 @@ let mainWindow
 let backend
 let browserShell
 let accountSession
+let linuxDevelopmentProtocol = null
 let updateManager
 let pendingAccountCallback = accountCallbackFromArgv(process.argv, desktopChannel)
 
@@ -1083,6 +1087,67 @@ function createWindow() {
   }
 }
 
+async function linuxDevelopmentProtocolAction(enabled) {
+  if (process.platform !== 'linux' || app.isPackaged || process.env.MILKSU_PLUGIN_DEV !== '1') {
+    return { available: false, enabled: false }
+  }
+  if (!enabled) {
+    const registration = linuxDevelopmentProtocol
+    if (registration) await registration.restore()
+    linuxDevelopmentProtocol = null
+    return { available: true, enabled: false }
+  }
+  if (linuxDevelopmentProtocol) return { available: true, enabled: true }
+
+  const { registerLinuxDevelopmentProtocol } = await import(pathToFileURL(
+    path.join(app.getAppPath(), '..', 'scripts', 'lib', 'linux-development-protocol.mjs'),
+  ).href)
+  const dataHome = process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share')
+  const configHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config')
+  // Bound every xdg call: restoreSync() runs inside before-quit, and a hung
+  // xdg-mime / update-desktop-database must not stall the quit path.
+  const xdgTimeout = { timeout: 10_000 }
+  const currentHandler = async () => {
+    try {
+      const { stdout } = await execFileAsync('xdg-mime', ['query', 'default', 'x-scheme-handler/milksu'], xdgTimeout)
+      return stdout
+    } catch {
+      return ''
+    }
+  }
+  const registration = await registerLinuxDevelopmentProtocol({
+    applicationsDirectory: path.join(dataHome, 'applications'),
+    configDirectory: configHome,
+    appDirectory: app.getAppPath(),
+    electronPath: process.execPath,
+    accountApiUrl: process.env.MILKSU_ACCOUNT_API_URL || '',
+    currentHandler,
+    setDefaultHandler: async (desktopFile, mimeType) => {
+      await execFileAsync('xdg-mime', ['default', desktopFile, mimeType], xdgTimeout)
+    },
+    refreshApplications: async applicationsDirectory => {
+      await execFileAsync('update-desktop-database', [applicationsDirectory], xdgTimeout)
+    },
+    currentHandlerSync: () => {
+      try {
+        return execFileSync('xdg-mime', ['query', 'default', 'x-scheme-handler/milksu'], { ...xdgTimeout, encoding: 'utf8' })
+      } catch {
+        return ''
+      }
+    },
+    setDefaultHandlerSync: (desktopFile, mimeType) => {
+      execFileSync('xdg-mime', ['default', desktopFile, mimeType], xdgTimeout)
+    },
+    refreshApplicationsSync: applicationsDirectory => {
+      execFileSync('update-desktop-database', [applicationsDirectory], xdgTimeout)
+    },
+    log: message => startupLog('linux-development-protocol', message),
+  })
+  if (!registration.registered) throw new Error('已有其他应用关联了 MilkSU 登录回调')
+  linuxDevelopmentProtocol = registration
+  return { available: true, enabled: true }
+}
+
 ipcMain.handle('milksu:invoke', async (event, request) => {
   const method = String(request?.method ?? '')
   if (!senderIsApp(event, method)) throw new Error('desktop invocation came from an untrusted renderer')
@@ -1091,6 +1156,16 @@ ipcMain.handle('milksu:invoke', async (event, request) => {
   if (companionResult !== undefined) return companionResult
   const skinResult = companionSkinHost?.handleHostMethod(method, hostArgs)
   if (skinResult !== undefined) return skinResult
+  if (method === 'GetLinuxDevelopmentProtocolStatus') {
+    return {
+      available: process.platform === 'linux' && !app.isPackaged && process.env.MILKSU_PLUGIN_DEV === '1',
+      enabled: Boolean(linuxDevelopmentProtocol),
+    }
+  }
+  if (method === 'SetLinuxDevelopmentProtocol') {
+    const payload = Array.isArray(request?.args) ? request.args[0] : request?.args
+    return linuxDevelopmentProtocolAction(payload?.enabled === true)
+  }
   // Packaging provenance is owned by the desktop shell, not Go domain logic.
   if (method === 'GetBuildTracking') return loadBuildTracking()
   if (method === 'SetTitleBarOverlay') {
@@ -1224,6 +1299,38 @@ app.on('second-instance', (_event, argv = []) => {
 })
 
 app.whenReady().then(async () => {
+  if (process.platform === 'linux' && !app.isPackaged && process.env.MILKSU_PLUGIN_DEV === '1') {
+    try {
+      const { clearStaleLinuxDevelopmentProtocol } = await import(pathToFileURL(
+        path.join(app.getAppPath(), '..', 'scripts', 'lib', 'linux-development-protocol.mjs'),
+      ).href)
+      const dataHome = process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share')
+      const configHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config')
+      const xdgTimeout = { timeout: 10_000 }
+      const currentHandler = async () => {
+        try {
+          const { stdout } = await execFileAsync('xdg-mime', ['query', 'default', 'x-scheme-handler/milksu'], xdgTimeout)
+          return stdout
+        } catch {
+          return ''
+        }
+      }
+      if (await clearStaleLinuxDevelopmentProtocol({
+        applicationsDirectory: path.join(dataHome, 'applications'),
+        configDirectory: configHome,
+        currentHandler,
+        setDefaultHandler: async (desktopFile, mimeType) => {
+          await execFileAsync('xdg-mime', ['default', desktopFile, mimeType], xdgTimeout)
+        },
+        refreshApplications: async applicationsDirectory => {
+          await execFileAsync('update-desktop-database', [applicationsDirectory], xdgTimeout)
+        },
+        log: message => startupLog('linux-development-protocol.stale-association-cleanup', message),
+      })) startupLog('linux-development-protocol.stale-association-cleared')
+    } catch (error) {
+      startupLog('linux-development-protocol.stale-association-cleanup', String(error?.message ?? error))
+    }
+  }
   startupLog('app.whenReady')
   if (process.env.MILKSU_REGISTER_PROTOCOL === '1' && app.isPackaged) {
     app.setAsDefaultProtocolClient('milksu')
@@ -1425,6 +1532,18 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
+  const registration = linuxDevelopmentProtocol
+  linuxDevelopmentProtocol = null
+  if (registration) {
+    // Cmd+Q must not be intercepted for async work; restore the protocol
+    // association synchronously. Every xdg call inside is bounded by the
+    // xdg timeouts, and a failed restore is logged while the quit proceeds.
+    try {
+      registration.restoreSync()
+    } catch (error) {
+      startupLog('linux-development-protocol.restore', String(error?.message ?? error))
+    }
+  }
   if (quitting) return
   if (!relaunchScheduled) {
     const probe = probeComputerUsePermissions(systemPreferences, { prompt: false })
