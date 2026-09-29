@@ -103,7 +103,7 @@ func findChromeWith(
 		seen[candidate] = true
 		return candidate, nil
 	}
-	for _, name := range chromePathNames() {
+	for _, name := range chromePathNames(goos) {
 		path, err := lookPath(name)
 		if err != nil || path == "" || seen[path] {
 			continue
@@ -120,8 +120,8 @@ func findChromeWith(
 	return "", fmt.Errorf("a Chromium-family browser is required for Managed Browser")
 }
 
-func chromePathNames() []string {
-	if runtime.GOOS == "windows" {
+func chromePathNames(goos string) []string {
+	if goos == "windows" {
 		return []string{"chrome.exe", "msedge.exe", "brave.exe"}
 	}
 	return []string{
@@ -165,7 +165,10 @@ func chromeFixedCandidates(goos string, getenv func(string) string) []string {
 		}
 		return candidates
 	default:
-		candidates := []string{
+		if home == "" {
+			return nil
+		}
+		return []string{
 			"/usr/bin/google-chrome-stable",
 			"/usr/bin/google-chrome",
 			"/usr/bin/chromium",
@@ -173,17 +176,13 @@ func chromeFixedCandidates(goos string, getenv func(string) string) []string {
 			"/usr/bin/microsoft-edge-stable",
 			"/usr/bin/microsoft-edge",
 			"/usr/bin/brave-browser",
+			"/snap/bin/chromium",
 			"/run/current-system/sw/bin/chromium",
 			"/run/current-system/sw/bin/google-chrome-stable",
 			"/run/current-system/sw/bin/microsoft-edge",
+			filepath.Join(home, ".nix-profile", "bin", "chromium"),
+			filepath.Join(home, ".nix-profile", "bin", "google-chrome-stable"),
 		}
-		if home != "" {
-			candidates = append(candidates,
-				filepath.Join(home, ".nix-profile", "bin", "chromium"),
-				filepath.Join(home, ".nix-profile", "bin", "google-chrome-stable"),
-			)
-		}
-		return candidates
 	}
 }
 
